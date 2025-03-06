@@ -16,7 +16,7 @@ class StorageRepository:
 
 
     def get_image(self, path):
-        if not self.blob_client:
+        if not self.blob_client or self.blob_client.blob_name != path:
             self.blob_client = self.blob_service_client.get_blob_client(container=self.container_name, blob=path)
         return self.blob_client.download_blob().readall() if self.blob_client.exists() else None
 
