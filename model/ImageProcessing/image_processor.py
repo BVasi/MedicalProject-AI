@@ -7,7 +7,7 @@ class ImageProcessor:
     @staticmethod
     def prepare_image(image_bytes):
         image = Image.open(io.BytesIO(image_bytes))
-        image = image.resize((150, 150))
+        image = image.resize((224, 224))
         if image.mode != 'RGB':
             image = image.convert('RGB')
         image_array = np.array(image)

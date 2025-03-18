@@ -1,0 +1,16 @@
+{
+    "service_bus": {
+        "connection_string": "Endpoint=sb://medicalprojectsb.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=F41bPbuik7KeWvmvYm0uLTI4UY6yGBxeS+ASbF0arpE=",
+        "queue_name": "diagnosis-request-queue"
+    },
+    "blob_storage": {
+        "connection_string": "DefaultEndpointsProtocol=https;AccountName=medicalproject;AccountKey=8LXOK77EbkyQX+MfvS6zuYIPfiu9DwOak5GjrfYrsUB5JhL4hJuY+le4fIgIh0JMGigF7EGmH7nx+AStJe3yRg==;EndpointSuffix=core.windows.net",
+        "container_name": "radiography"
+    },
+    "table_storage": {
+        "connection_string": "DefaultEndpointsProtocol=https;AccountName=medicalproject;AccountKey=8LXOK77EbkyQX+MfvS6zuYIPfiu9DwOak5GjrfYrsUB5JhL4hJuY+le4fIgIh0JMGigF7EGmH7nx+AStJe3yRg==;EndpointSuffix=core.windows.net",
+        "table_name": "Predictions"
+    },
+    "model_path": "pneumonia_model_91_224x224.h5",
+    "dataset_path": "C:\\Users\\Vasi\\.cache\\kagglehub\\datasets\\paultimothymooney\\chest-xray-pneumonia\\versions\\2\\chest_xray"
+}
