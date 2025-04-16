@@ -1,0 +1,6 @@
+tensorflow>=2.10.0
+azure-servicebus>=7.10.0
+azure-storage-blob>=12.10.0
+azure-data-tables>=12.2.0
+pillow>=9.1.0
+numpy>=1.23.0
