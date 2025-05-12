@@ -1,17 +1,20 @@
 from model.ImageProcessing.image_processor import ImageProcessor
 import tensorflow as tf
 import os
+import threading
 
 class PneumoniaModelPredictor:
     def __init__(self, model_path):
         self.model = tf.keras.models.load_model(model_path)
+        self.lock = threading.Lock()
 
 
     def predict(self, image_array):
-        if not self.model:
-            return None
-        prediction = self.model.predict(image_array)
-        return round(float(prediction[0][0]), 3)
+        with self.lock:
+            if not self.model:
+                return None
+            prediction = self.model.predict(image_array)
+            return round(float(prediction[0][0]), 3)
 
 
     def test_accuracy(self, dataset_dir):

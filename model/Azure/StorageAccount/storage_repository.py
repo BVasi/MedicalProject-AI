@@ -1,5 +1,6 @@
 from azure.storage.blob import BlobServiceClient
 from azure.data.tables import TableServiceClient, TableClient
+import threading
 
 
 class StorageRepository:
@@ -14,19 +15,23 @@ class StorageRepository:
         self.table_service_client = TableServiceClient.from_connection_string(self.connection_string)
         self.table_client = None
 
+        self.lock = threading.Lock()
+
 
     def get_image(self, path):
-        if not self.blob_client or self.blob_client.blob_name != path:
-            self.blob_client = self.blob_service_client.get_blob_client(container=self.container_name, blob=path)
-        return self.blob_client.download_blob().readall() if self.blob_client.exists() else None
+        with self.lock:
+            if not self.blob_client or self.blob_client.blob_name != path:
+                self.blob_client = self.blob_service_client.get_blob_client(container=self.container_name, blob=path)
+            return self.blob_client.download_blob().readall() if self.blob_client.exists() else None
 
 
     def save_to_table(self, path, prediction): #to do: refactor
-        if not self.table_client:
-            self.table_client = self.table_service_client.get_table_client(table_name=self.table_name)
-        entity = {
-            'PartitionKey': path.split('/')[0],
-            'RowKey': path.split('/')[1],
-            'confidenceScore': prediction
-        }
-        self.table_client.upsert_entity(entity=entity)
+        with self.lock:
+            if not self.table_client:
+                self.table_client = self.table_service_client.get_table_client(table_name=self.table_name)
+            entity = {
+                'PartitionKey': path.split('/')[0],
+                'RowKey': path.split('/')[1],
+                'confidenceScore': prediction
+            }
+            self.table_client.upsert_entity(entity=entity)

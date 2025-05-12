@@ -17,4 +17,4 @@ DATASET_PATH = "dataset_path"
 
 WAITING_TIME = 1
 
-MAX_WORKERS = 4
+MAX_WORKERS = 5

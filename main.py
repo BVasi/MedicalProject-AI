@@ -1,7 +1,6 @@
 import os
 import json
 import time
-import threading
 from concurrent.futures import ThreadPoolExecutor
 from constants import constants
 from model.Azure.ServiceBus.service_bus_message_processor import ServiceBusMessageProcessor
@@ -18,13 +17,13 @@ def get_configuration():
 
 
 def process_message(message, storage_repository, pneumonia_predictor, message_processor):
-    image = storage_repository.get_image(message)
+    image = storage_repository.get_image(str(message))
     if not image:
         return
     image_array = ImageProcessor.prepare_image(image)
     prediction = pneumonia_predictor.predict(image_array)
-    storage_repository.save_to_table(message, prediction)
-    message_processor.complete_message()
+    storage_repository.save_to_table(str(message), prediction)
+    message_processor.complete_message(message)
 
 
 def main(): #to do: refactor + more checking
@@ -45,11 +44,10 @@ def main(): #to do: refactor + more checking
     pneumonia_predictor = PneumoniaModelPredictor(configuration[constants.MODEL_PATH])
     with ThreadPoolExecutor(max_workers=constants.MAX_WORKERS) as executor:
         while True:
-            if not message_processor.has_message():
-                time.sleep(constants.WAITING_TIME)
-                continue
-            message = message_processor.get_message()
+            message_processor.queue_messages()
+            message = message_processor.get_oldest_message()
             if not message:
+                time.sleep(constants.WAITING_TIME)
                 continue
             executor.submit(process_message, message, storage_repository, pneumonia_predictor, message_processor)
 
