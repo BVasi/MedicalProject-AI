@@ -16,3 +16,5 @@ MODEL_PATH = "model_path"
 DATASET_PATH = "dataset_path"
 
 WAITING_TIME = 1
+
+MAX_WORKERS = 4

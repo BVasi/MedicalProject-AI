@@ -1,6 +1,8 @@
 import os
 import json
 import time
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from constants import constants
 from model.Azure.ServiceBus.service_bus_message_processor import ServiceBusMessageProcessor
 from model.Azure.StorageAccount.storage_repository import StorageRepository
@@ -13,6 +15,16 @@ def get_configuration():
     with (open(constants.CONFIG_FILE_PATH, constants.READ_FILE)) as file:
         configuration = json.load(file)
     return configuration
+
+
+def process_message(message, storage_repository, pneumonia_predictor, message_processor):
+    image = storage_repository.get_image(message)
+    if not image:
+        return
+    image_array = ImageProcessor.prepare_image(image)
+    prediction = pneumonia_predictor.predict(image_array)
+    storage_repository.save_to_table(message, prediction)
+    message_processor.complete_message()
 
 
 def main(): #to do: refactor + more checking
@@ -31,20 +43,15 @@ def main(): #to do: refactor + more checking
         pneumonia_trainer.train()
         pneumonia_trainer.save_model(configuration[constants.MODEL_PATH])
     pneumonia_predictor = PneumoniaModelPredictor(configuration[constants.MODEL_PATH])
-    while True:
-        if not message_processor.has_message():
-            time.sleep(constants.WAITING_TIME)
-            continue
-        message = message_processor.get_message()
-        if not message:
-            continue
-        image = storage_repository.get_image(message)
-        if not image:
-            continue
-        image_array = ImageProcessor.prepare_image(image)
-        prediction = pneumonia_predictor.predict(image_array)
-        storage_repository.save_to_table(message, prediction)
-        message_processor.complete_message()
+    with ThreadPoolExecutor(max_workers=constants.MAX_WORKERS) as executor:
+        while True:
+            if not message_processor.has_message():
+                time.sleep(constants.WAITING_TIME)
+                continue
+            message = message_processor.get_message()
+            if not message:
+                continue
+            executor.submit(process_message, message, storage_repository, pneumonia_predictor, message_processor)
 
 
 if __name__ == "__main__":
